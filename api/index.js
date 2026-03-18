@@ -292,15 +292,18 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
 app.post('/api/tasks', authenticateToken, async (req, res) => {
     const { title, description, due_date, status, priority, subtasks } = req.body;
     const subtasksJson = JSON.stringify(subtasks || []);
+    const finalDueDate = due_date === '' ? null : due_date;
+    
     try {
         if (db.type === 'postgres') {
-            await db.sql`INSERT INTO tasks (user_id, title, description, due_date, status, priority, subtasks) VALUES (${req.user.id}, ${title}, ${description}, ${due_date}, ${status || 'Pending'}, ${priority || 'Medium'}, ${subtasksJson})`;
+            await db.sql`INSERT INTO tasks (user_id, title, description, due_date, status, priority, subtasks) VALUES (${req.user.id}, ${title}, ${description}, ${finalDueDate}, ${status || 'Pending'}, ${priority || 'Medium'}, ${subtasksJson})`;
         } else {
             await db.run('INSERT INTO tasks (user_id, title, description, due_date, status, priority, subtasks) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-                [req.user.id, title, description, due_date, status || 'Pending', priority || 'Medium', subtasksJson]);
+                [req.user.id, title, description, finalDueDate, status || 'Pending', priority || 'Medium', subtasksJson]);
         }
         res.status(201).json({ message: 'Task created' });
     } catch (err) {
+        console.error('Error creating task:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -308,15 +311,18 @@ app.post('/api/tasks', authenticateToken, async (req, res) => {
 app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
     const { title, description, due_date, status, priority, subtasks } = req.body;
     const subtasksJson = JSON.stringify(subtasks || []);
+    const finalDueDate = due_date === '' ? null : due_date;
+
     try {
         if (db.type === 'postgres') {
-            await db.sql`UPDATE tasks SET title = ${title}, description = ${description}, due_date = ${due_date}, status = ${status}, priority = ${priority}, subtasks = ${subtasksJson} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+            await db.sql`UPDATE tasks SET title = ${title}, description = ${description}, due_date = ${finalDueDate}, status = ${status}, priority = ${priority}, subtasks = ${subtasksJson} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
         } else {
             await db.run('UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ?, priority = ?, subtasks = ? WHERE id = ? AND user_id = ?', 
-                [title, description, due_date, status, priority, subtasksJson, req.params.id, req.user.id]);
+                [title, description, finalDueDate, status, priority, subtasksJson, req.params.id, req.user.id]);
         }
         res.json({ message: 'Task updated' });
     } catch (err) {
+        console.error('Error updating task:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -341,9 +347,9 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
             const result = await db.sql`
                 SELECT 
                     COUNT(*) as total,
-                    SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed,
-                    SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending,
-                    SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress
+                    COALESCE(SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END), 0) as completed,
+                    COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
+                    COALESCE(SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END), 0) as in_progress
                 FROM tasks 
                 WHERE user_id = ${req.user.id}
             `;
