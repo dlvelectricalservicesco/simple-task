@@ -15,6 +15,14 @@ app.use(express.json());
 // Database logic: Unify interface for Vercel Postgres and SQLite
 let db;
 
+app.get('/api/debug', (req, res) => {
+    res.json({
+        db_type: db?.type || 'not initialized',
+        has_postgres_url: !!process.env.POSTGRES_URL,
+        env_keys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('TOKEN') && !k.includes('URL'))
+    });
+});
+
 if (process.env.POSTGRES_URL) {
     const { sql } = require('@vercel/postgres');
     db = {
@@ -120,9 +128,12 @@ const initDb = async () => {
                 }
             }
         }
-        console.log(`${db.type === 'postgres' ? 'Postgres' : 'SQLite'} Database initialized`);
+        console.log(`[initDb] ${db.type === 'postgres' ? 'Postgres' : 'SQLite'} Database initialized`);
     } catch (err) {
-        console.error('Error initializing database:', err);
+        console.error('[initDb] Error initializing database:', err.message);
+        if (db.type === 'sqlite') {
+            console.error('[initDb] SQLite error might be due to read-only filesystem on Vercel.');
+        }
     }
 };
 
