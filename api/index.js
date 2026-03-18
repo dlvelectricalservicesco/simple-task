@@ -15,12 +15,23 @@ app.use(express.json());
 // Database logic: Unify interface for Vercel Postgres and SQLite
 let db;
 
-app.get('/api/debug', (req, res) => {
-    res.json({
-        db_type: db?.type || 'not initialized',
-        has_postgres_url: !!process.env.POSTGRES_URL,
-        env_keys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('TOKEN') && !k.includes('URL'))
-    });
+app.get('/api/debug', async (req, res) => {
+    try {
+        let tables = [];
+        if (db.type === 'postgres') {
+            const result = await db.sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`;
+            const columns = await db.sql`SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = 'public'`;
+            tables = { tables: result.rows, columns: columns.rows };
+        }
+        res.json({
+            db_type: db?.type || 'not initialized',
+            has_postgres_url: !!process.env.POSTGRES_URL,
+            schema: tables,
+            env_keys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('TOKEN') && !k.includes('URL'))
+        });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
 });
 
 if (process.env.POSTGRES_URL) {
