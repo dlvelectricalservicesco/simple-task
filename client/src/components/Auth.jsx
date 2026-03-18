@@ -91,7 +91,7 @@ const Auth = ({ setUser }) => {
                     </div>
 
                     {error && (
-                        <p className={`text-sm text-center ${error.includes('successful') ? 'text-green-500' : 'text-pink-500'} font-semibold`}>
+                        <p className={`text-sm text-center ${(error && typeof error === 'string' && error.includes('successful')) ? 'text-green-500' : 'text-pink-500'} font-semibold`}>
                             {error}
                         </p>
                     )}

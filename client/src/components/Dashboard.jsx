@@ -176,8 +176,8 @@ const Dashboard = ({ user, onLogout }) => {
 
     const sortedTasks = [...tasks]
         .filter(t => {
-            const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                  t.description.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesSearch = (t.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
+                                  (t.description?.toLowerCase() || '').includes(searchQuery.toLowerCase());
             if (!matchesSearch) return false;
             if (filter === 'All') return true;
             if (filter === 'Active') return t.status !== 'Completed';
@@ -640,7 +640,7 @@ const Dashboard = ({ user, onLogout }) => {
 const AnalyticItem = ({ label, value, color }) => (
     <div className="bg-white/80 dark:bg-white/5 p-4 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm">
         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">{label}</p>
-        <p className={`text-2xl font-black ${color.includes('text-') ? color : 'text-main'}`}>{value}</p>
+        <p className={`text-2xl font-black ${(typeof color === 'string' && color.includes('text-')) ? color : 'text-main'}`}>{value}</p>
     </div>
 );
 
