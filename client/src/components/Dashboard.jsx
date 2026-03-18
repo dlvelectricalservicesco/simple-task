@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTasks, createTask, updateTask, deleteTask } from '../api';
-import { Plus, Trash2, CheckCircle, Clock, Calendar, LogOut, Layout, BookOpen, Clock3, CheckSquare, X, Bell, BellOff, Settings, Search, ArrowUpDown, Sun, Moon, BarChart2, Sparkles, CheckCircle2, ChevronDown, ListTodo, MessageSquare, Send } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Clock, Calendar, LogOut, Layout, BookOpen, Clock3, CheckSquare, X, Bell, BellOff, Settings, Search, ArrowUpDown, Sun, Moon, BarChart2, Sparkles, CheckCircle2, ChevronDown, ListTodo, MessageSquare, Send, AlertCircle } from 'lucide-react';
 
 const Dashboard = ({ user, onLogout }) => {
     const [tasks, setTasks] = useState([]);
@@ -22,6 +22,12 @@ const Dashboard = ({ user, onLogout }) => {
     const [theme, setTheme] = useState(user.ui_theme || 'light');
     const [serverStats, setServerStats] = useState(null);
     const [showAnalytics, setShowAnalytics] = useState(false);
+    const [toast, setToast] = useState({ visible: false, message: '', type: 'error' });
+
+    const showToast = (message, type = 'error') => {
+        setToast({ visible: true, message, type });
+        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 4000);
+    };
 
     useEffect(() => {
         fetchTasks();
@@ -109,7 +115,7 @@ const Dashboard = ({ user, onLogout }) => {
             if (currentTask.status === 'Completed') {
                 const subtasks = currentTask.subtasks || [];
                 if (subtasks.some(st => !st.completed)) {
-                    alert('Hindi mo pa pwedeng i-complete ang task na ito dahil may mga subtask ka pang hindi tapos. ⚠️');
+                    showToast('Hindi mo pa pwedeng i-complete ang task na ito dahil may mga subtask ka pang hindi tapos. ⚠️');
                     return;
                 }
             }
@@ -146,10 +152,10 @@ const Dashboard = ({ user, onLogout }) => {
         try {
             const { testNotification } = await import('../api');
             await testNotification();
-            alert('Test notification sent!');
+            showToast('Test notification sent!', 'success');
         } catch (err) {
             console.error(err);
-            alert('Failed to send test notification');
+            showToast('Failed to send test notification');
         }
     };
 
@@ -169,7 +175,7 @@ const Dashboard = ({ user, onLogout }) => {
         if (newStatus === 'Completed') {
             const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
             if (subtasks.some(st => !st.completed)) {
-                alert('Tapusin mo muna ang lahat ng subtasks bago i-complete ang task! ⚠️');
+                showToast('Tapusin mo muna ang lahat ng subtasks bago i-complete ang task! ⚠️');
                 return;
             }
         }
@@ -658,6 +664,31 @@ const Dashboard = ({ user, onLogout }) => {
                                     </div>
                                 </form>
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {toast.visible && (
+                    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-sm px-4">
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                            className={`flex items-center gap-3 p-4 rounded-2xl shadow-2xl backdrop-blur-xl border ${
+                                toast.type === 'success' 
+                                    ? 'bg-emerald-500/90 border-emerald-400 text-white' 
+                                    : 'bg-rose-500/90 border-rose-400 text-white'
+                            }`}
+                        >
+                            <div className="bg-white/20 p-2 rounded-xl">
+                                {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                            </div>
+                            <p className="text-sm font-bold flex-grow">{toast.message}</p>
+                            <button onClick={() => setToast(prev => ({ ...prev, visible: false }))} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+                                <X className="w-4 h-4 ml-2" />
+                            </button>
                         </motion.div>
                     </div>
                 )}
