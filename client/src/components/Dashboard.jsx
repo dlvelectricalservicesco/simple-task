@@ -106,6 +106,13 @@ const Dashboard = ({ user, onLogout }) => {
     const handleSaveTask = async (e) => {
         e.preventDefault();
         try {
+            if (currentTask.status === 'Completed') {
+                const subtasks = currentTask.subtasks || [];
+                if (subtasks.some(st => !st.completed)) {
+                    alert('Hindi mo pa pwedeng i-complete ang task na ito dahil may mga subtask ka pang hindi tapos. ⚠️');
+                    return;
+                }
+            }
             if (editingId) {
                 await updateTask(editingId, currentTask);
             } else {
@@ -158,6 +165,15 @@ const Dashboard = ({ user, onLogout }) => {
 
     const toggleStatus = async (task) => {
         const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
+        
+        if (newStatus === 'Completed') {
+            const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+            if (subtasks.some(st => !st.completed)) {
+                alert('Tapusin mo muna ang lahat ng subtasks bago i-complete ang task! ⚠️');
+                return;
+            }
+        }
+
         try {
             await updateTask(task.id, { ...task, status: newStatus });
             fetchTasks();
@@ -268,7 +284,11 @@ const Dashboard = ({ user, onLogout }) => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => setShowModal(true)}
+                            onClick={() => {
+                                setCurrentTask({ title: '', description: '', due_date: '', status: 'Pending', priority: 'Medium', subtasks: [] });
+                                setEditingId(null);
+                                setShowModal(true);
+                            }}
                             className="btn-primary px-6 py-3 flex items-center gap-2 whitespace-nowrap"
                         >
                             <Plus className="w-5 h-5" /> New Task

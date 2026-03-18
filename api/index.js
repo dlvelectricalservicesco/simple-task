@@ -279,8 +279,14 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
 
 app.post('/api/tasks', authenticateToken, async (req, res) => {
     const { title, description, due_date, status, priority, subtasks } = req.body;
-    const subtasksJson = JSON.stringify(subtasks || []);
+    const subtasksArray = subtasks || [];
+    const subtasksJson = JSON.stringify(subtasksArray);
     const finalDueDate = due_date === '' ? null : due_date;
+
+    // Preventive check: Cannot mark as Completed if there are unfinished subtasks
+    if (status === 'Completed' && subtasksArray.some(st => !st.completed)) {
+        return res.status(400).json({ error: 'Cannot complete task with unfinished subtasks.' });
+    }
     
     try {
         if (db.type === 'postgres') {
@@ -298,8 +304,14 @@ app.post('/api/tasks', authenticateToken, async (req, res) => {
 
 app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
     const { title, description, due_date, status, priority, subtasks } = req.body;
-    const subtasksJson = JSON.stringify(subtasks || []);
+    const subtasksArray = subtasks || [];
+    const subtasksJson = JSON.stringify(subtasksArray);
     const finalDueDate = due_date === '' ? null : due_date;
+
+    // Preventive check: Cannot mark as Completed if there are unfinished subtasks
+    if (status === 'Completed' && subtasksArray.some(st => !st.completed)) {
+        return res.status(400).json({ error: 'Cannot complete task with unfinished subtasks.' });
+    }
 
     try {
         if (db.type === 'postgres') {
