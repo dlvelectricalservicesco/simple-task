@@ -394,9 +394,12 @@ const checkReminders = async () => {
                     return `- ${t.title} [${t.status}] ${statusEmoji}`;
                 }).join('\n');
                 
+                const dateOptions = { month: 'long', day: 'numeric' };
+                const formattedDate = phTime.toLocaleDateString('en-US', dateOptions);
+
                 await sendExternalNotification(
                     user, 
-                    'Daily Task Digest 📅', 
+                    `Daily Task Digest (${formattedDate}) 📅`, 
                     `Magandang araw, ${user.name}! Heto ang iyong mga gagawin para sa araw na ito:\n\n${taskList}\n\nKaya mo 'yan! 🚀`
                 );
             }
