@@ -197,10 +197,17 @@ app.put('/api/auth/settings', authenticateToken, async (req, res) => {
     const { discord_webhook, telegram_id, reminder_time, ui_theme } = req.body;
     try {
         if (db.type === 'postgres') {
-            await db.sql`UPDATE users SET discord_webhook = ${discord_webhook}, telegram_id = ${telegram_id}, reminder_time = ${reminder_time}, ui_theme = ${ui_theme} WHERE id = ${req.user.id}`;
+            // Reset last_reminder_sent if the time is changed so it can trigger again for testing today
+            await db.sql`UPDATE users SET 
+                discord_webhook = ${discord_webhook}, 
+                telegram_id = ${telegram_id}, 
+                reminder_time = ${reminder_time}, 
+                ui_theme = ${ui_theme},
+                last_reminder_sent = CASE WHEN reminder_time = ${reminder_time} THEN last_reminder_sent ELSE NULL END
+                WHERE id = ${req.user.id}`;
         } else {
-            await db.run('UPDATE users SET discord_webhook = ?, telegram_id = ?, reminder_time = ?, ui_theme = ? WHERE id = ?', 
-                [discord_webhook, telegram_id, reminder_time, ui_theme, req.user.id]);
+            await db.run('UPDATE users SET discord_webhook = ?, telegram_id = ?, reminder_time = ?, ui_theme = ?, last_reminder_sent = CASE WHEN reminder_time = ? THEN last_reminder_sent ELSE NULL END WHERE id = ?', 
+                [discord_webhook, telegram_id, reminder_time, ui_theme, reminder_time, req.user.id]);
         }
         res.json({ message: 'Settings updated' });
     } catch (err) {
@@ -353,10 +360,19 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/cron/reminders', async (req, res) => {
-    // Basic security: Check for Vercel Cron header if needed, 
-    // but for now we'll allow it to be triggered manually for testing.
-    await checkReminders();
-    res.json({ message: 'Cron job executed' });
+    const now = new Date();
+    const phTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+    const currentTime = phTime.toISOString().slice(11, 16);
+    const todayStr = phTime.toISOString().slice(0, 10);
+
+    const result = await checkReminders();
+    res.json({ 
+        message: 'Cron job executed', 
+        server_time_utc: now.toISOString(),
+        calculated_ph_time: currentTime,
+        calculated_date: todayStr,
+        users_processed: result?.users_processed || 0
+    });
 });
 
 // Background Heartbeat for Daily Reminders
@@ -411,8 +427,10 @@ const checkReminders = async () => {
                 await db.run('UPDATE users SET last_reminder_sent = ? WHERE id = ?', [todayStr, user.id]);
             }
         }
+        return { users_processed: users.length };
     } catch (err) {
         console.error('Error in reminder heartbeat:', err.message);
+        return { error: err.message };
     }
 };
 
