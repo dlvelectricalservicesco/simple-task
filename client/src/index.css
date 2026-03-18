@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  
+  /* Theme Variables */
+  --bg-main: #f9fafb;
+  --text-main: #111827;
+  --text-muted: #4b5563;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(255, 255, 255, 0.3);
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark {
+  --bg-main: #0f1115;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --card-bg: rgba(20, 22, 26, 0.9);
+  --card-border: rgba(255, 255, 255, 0.1);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+/* Base Theme Utilities */
+.text-main {
+  color: var(--text-main) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Nuclear Readability Overrides */
+.dark, .dark * {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark strong, .dark b, .dark .text-main, .dark .text-gray-900, .dark .text-gray-800 {
+  color: #ffffff !important;
+}
+
+.dark p, .dark span, .dark label, .dark li, .dark .text-muted, .dark .text-gray-600, .dark .text-gray-500, .dark .text-gray-400 {
+  color: #e2e8f0 !important; /* Extremely high contrast light gray */
+}
+
+.dark .glass-card {
+  background: rgba(15, 17, 21, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+}
+
+.dark input, .dark textarea, .dark select {
+  background-color: #1a1c20 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark ::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+.dark .bg-rose-50, .dark .bg-rose-100 {
+  background-color: rgba(159, 18, 57, 0.6) !important;
+  color: #fca5a5 !important;
+}
+
+.dark .bg-orange-50, .dark .bg-orange-100 {
+  background-color: rgba(154, 52, 18, 0.6) !important;
+  color: #fdba74 !important;
+}
+
+.dark .bg-blue-50, .dark .bg-blue-100, .dark .bg-sky-50, .dark .bg-indigo-50 {
+  background-color: rgba(30, 58, 138, 0.6) !important;
+  color: #93c5fd !important;
+}
+
+.dark .bg-emerald-50, .dark .bg-emerald-100 {
+  background-color: rgba(6, 78, 59, 0.6) !important;
+  color: #6ee7b7 !important;
+}
+
+.dark svg {
+  color: #f8fafc !important; /* Almost pure white icons */
+}
+
+.dark .text-indigo-600, .dark .text-indigo-500 {
+  color: #a5b4fc !important;
+}
+
+.dark .hover\:bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+.dark .hover\:bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all duration-300 hover:scale-105 active:scale-95;
+}
+
+.input-field {
+  @apply bg-white/50 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-300;
+}
+
+.dark .input-field {
+  @apply bg-[#1a1c20] border-white/5 text-white;
+}
+
+.input-with-icon {
+  @apply pl-12;
+}
+
+.icon-left {
+  @apply absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none transition-colors duration-300;
+}
+
+.input-icon-group:focus-within .icon-left {
+  @apply text-purple-500;
+}
