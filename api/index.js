@@ -76,9 +76,16 @@ const initDb = async () => {
                 description TEXT,
                 due_date DATE,
                 priority TEXT DEFAULT 'Medium',
+                status TEXT DEFAULT 'Pending',
                 subtasks TEXT DEFAULT '[]',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`;
+            // Migration: Add status column if it doesn't exist
+            try {
+                await db.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pending'`;
+            } catch (e) {
+                console.log('Status column might already exist or error adding it:', e.message);
+            }
         } else {
             await db.run(`CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,10 +106,19 @@ const initDb = async () => {
                 description TEXT,
                 due_date DATE,
                 priority TEXT DEFAULT 'Medium',
+                status TEXT DEFAULT 'Pending',
                 subtasks TEXT DEFAULT '[]',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )`);
+            // Migration for SQLite: Add status column if it doesn't exist
+            try {
+                await db.run("ALTER TABLE tasks ADD COLUMN status TEXT DEFAULT 'Pending'");
+            } catch (e) {
+                if (!e.message.includes('duplicate column name')) {
+                    console.error('Error adding status column to SQLite:', e.message);
+                }
+            }
         }
         console.log(`${db.type === 'postgres' ? 'Postgres' : 'SQLite'} Database initialized`);
     } catch (err) {
