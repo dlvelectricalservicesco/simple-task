@@ -15,25 +15,6 @@ app.use(express.json());
 // Database logic: Unify interface for Vercel Postgres and SQLite
 let db;
 
-app.get('/api/debug', async (req, res) => {
-    try {
-        let tables = [];
-        if (db.type === 'postgres') {
-            const result = await db.sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`;
-            const columns = await db.sql`SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = 'public'`;
-            tables = { tables: result.rows, columns: columns.rows };
-        }
-        res.json({
-            db_type: db?.type || 'not initialized',
-            has_postgres_url: !!process.env.POSTGRES_URL,
-            schema: tables,
-            env_keys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('TOKEN') && !k.includes('URL'))
-        });
-    } catch (e) {
-        res.json({ error: e.message });
-    }
-});
-
 if (process.env.POSTGRES_URL) {
     const { sql } = require('@vercel/postgres');
     db = {
@@ -371,11 +352,22 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
     }
 });
 
+app.get('/api/cron/reminders', async (req, res) => {
+    // Basic security: Check for Vercel Cron header if needed, 
+    // but for now we'll allow it to be triggered manually for testing.
+    await checkReminders();
+    res.json({ message: 'Cron job executed' });
+});
+
 // Background Heartbeat for Daily Reminders
 const checkReminders = async () => {
+    // Get current time in Philippine Time (UTC+8)
     const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
-    const todayStr = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const phTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+    const currentTime = phTime.toISOString().slice(11, 16); // "HH:MM"
+    const todayStr = phTime.toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+    console.log(`[Cron] Checking reminders for PH Time: ${currentTime}, Date: ${todayStr}`);
 
     try {
         let users;
@@ -422,7 +414,11 @@ const checkReminders = async () => {
 };
 
 // Start Heartbeat (every minute)
-setInterval(checkReminders, 60000);
+// Start Heartbeat only in local environment
+if (process.env.NODE_ENV !== 'production') {
+    console.log('Local environment detected: Starting notification heartbeat');
+    setInterval(checkReminders, 60000);
+}
 
 // For local running without Vercel Dev if needed
 if (require.main === module) {
