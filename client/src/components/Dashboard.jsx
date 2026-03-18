@@ -203,7 +203,6 @@ const Dashboard = ({ user, onLogout }) => {
                         </div>
                         <div>
                             <h1 className="text-3xl font-black gradient-text">Hello, {user.name}! 👋</h1>
-                            <p className="text-muted font-medium">You have {localStats.pending} pending tasks for today.</p>
                         </div>
                     </div>
 
@@ -410,6 +409,15 @@ const Dashboard = ({ user, onLogout }) => {
                                     value={currentTask.description}
                                     onChange={(e) => setCurrentTask({ ...currentTask, description: e.target.value })}
                                 />
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase text-gray-400 mb-1 ml-1 tracking-widest">Due Date</label>
+                                    <input
+                                        type="date"
+                                        className="input-field w-full"
+                                        value={currentTask.due_date || ''}
+                                        onChange={(e) => setCurrentTask({ ...currentTask, due_date: e.target.value })}
+                                    />
+                                </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-[10px] font-black uppercase text-gray-400 mb-1 ml-1 tracking-widest">Priority</label>
