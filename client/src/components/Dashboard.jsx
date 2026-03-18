@@ -23,6 +23,7 @@ const Dashboard = ({ user, onLogout }) => {
     const [serverStats, setServerStats] = useState(null);
     const [showAnalytics, setShowAnalytics] = useState(false);
     const [toast, setToast] = useState({ visible: false, message: '', type: 'error' });
+    const [deleteConfirm, setDeleteConfirm] = useState({ visible: false, id: null, title: '' });
 
     const showToast = (message, type = 'error') => {
         setToast({ visible: true, message, type });
@@ -121,8 +122,10 @@ const Dashboard = ({ user, onLogout }) => {
             }
             if (editingId) {
                 await updateTask(editingId, currentTask);
+                showToast('Task updated successfully!', 'success');
             } else {
                 await createTask(currentTask);
+                showToast('Task created successfully!', 'success');
             }
             fetchTasks();
             fetchStats();
@@ -131,6 +134,7 @@ const Dashboard = ({ user, onLogout }) => {
             setEditingId(null);
         } catch (err) {
             console.error(err);
+            showToast(err.response?.data?.error || 'Failed to save task', 'error');
         }
     };
 
@@ -143,8 +147,10 @@ const Dashboard = ({ user, onLogout }) => {
             const updatedUser = { ...user, ...settings };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setShowSettings(false);
+            showToast('Settings saved successfully!', 'success');
         } catch (err) {
             console.error(err);
+            showToast('Failed to save settings', 'error');
         }
     };
 
@@ -159,13 +165,23 @@ const Dashboard = ({ user, onLogout }) => {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDeleteClick = (id) => {
+        const taskToDelete = tasks.find(t => t.id === id);
+        setDeleteConfirm({ visible: true, id, title: taskToDelete?.title || 'this task' });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirm.id) return;
         try {
-            await deleteTask(id);
-            setTasks(tasks.filter(t => t.id !== id));
+            await deleteTask(deleteConfirm.id);
+            setTasks(tasks.filter(t => t.id !== deleteConfirm.id));
             fetchStats();
+            showToast('Task deleted successfully!', 'success');
         } catch (err) {
             console.error(err);
+            showToast('Failed to delete task', 'error');
+        } finally {
+            setDeleteConfirm({ visible: false, id: null, title: '' });
         }
     };
 
@@ -370,7 +386,7 @@ const Dashboard = ({ user, onLogout }) => {
                             <TaskCard 
                                 key={task.id} 
                                 task={task} 
-                                onDelete={handleDelete} 
+                                onDelete={handleDeleteClick} 
                                 onToggle={toggleStatus}
                                 onEdit={() => {
                                     setCurrentTask({
@@ -663,6 +679,44 @@ const Dashboard = ({ user, onLogout }) => {
                                         </motion.button>
                                     </div>
                                 </form>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteConfirm.visible && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-3xl p-8 w-full max-w-sm shadow-2xl relative text-center`}
+                        >
+                            <div className="w-16 h-16 bg-rose-100 dark:bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Trash2 className="w-8 h-8" />
+                            </div>
+                            <h2 className="text-xl font-black mb-2 text-main">Delete Task?</h2>
+                            <p className="text-muted text-sm mb-6">
+                                Are you sure you want to delete <span className="font-bold">"{deleteConfirm.title}"</span>? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={() => setDeleteConfirm({ visible: false, id: null, title: '' })}
+                                    className="flex-1 py-3 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 font-bold rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={confirmDelete}
+                                    className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-2xl hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/30"
+                                >
+                                    Delete
+                                </motion.button>
                             </div>
                         </motion.div>
                     </div>
