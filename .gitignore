@@ -18,6 +18,7 @@ yarn-error.log*
 *.db
 
 # Build outputs
+dist/
 client/dist/
 
 # Editor/OS
