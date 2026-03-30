@@ -41,6 +41,17 @@ const Dashboard = ({ user, onLogout }) => {
         document.body.style.backgroundColor = theme === 'dark' ? '#0f1115' : '#f9fafb';
     }, [theme]);
 
+    // Lock body scroll when any modal is open
+    useEffect(() => {
+        const isAnyModalOpen = showModal || showSettings || deleteConfirm.visible;
+        if (isAnyModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [showModal, showSettings, deleteConfirm.visible]);
+
     const fetchStats = async () => {
         try {
             const { getStats } = await import('../api');
@@ -418,12 +429,12 @@ const Dashboard = ({ user, onLogout }) => {
             {/* Task Modal */}
             <AnimatePresence>
                 {showModal && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center overflow-y-auto p-4 z-50">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
-                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-3xl p-6 sm:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl relative`}
+                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl relative my-auto`}
                         >
                             <button 
                                 onClick={() => setShowModal(false)}
@@ -559,12 +570,12 @@ const Dashboard = ({ user, onLogout }) => {
 
             <AnimatePresence>
                 {showSettings && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-start sm:items-center justify-center overflow-y-auto p-4 z-50">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl relative`}
+                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 w-full max-w-xl shadow-2xl relative my-auto overflow-hidden`}
                         >
                             {/* Decorative Background Element */}
                             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -686,7 +697,7 @@ const Dashboard = ({ user, onLogout }) => {
             {/* Delete Confirmation Modal */}
             <AnimatePresence>
                 {deleteConfirm.visible && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center overflow-y-auto p-4 z-50">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
