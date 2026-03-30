@@ -240,42 +240,45 @@ const Dashboard = ({ user, onLogout }) => {
                             <Sparkles className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black gradient-text">Hello, {user.name}! 👋</h1>
+                            <h1 className="text-xl sm:text-3xl font-black gradient-text">Hello, {user.name}! 👋</h1>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <div className="relative flex-grow lg:flex-grow-0 group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted transition-colors group-focus-within:text-indigo-500" />
-                            <input 
-                                type="text"
-                                placeholder="Search tasks..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full lg:w-64 pl-11 pr-4 py-3 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all backdrop-blur-md text-main placeholder:text-muted"
-                            />
+                    <div className="flex flex-col gap-3 w-full lg:w-auto">
+                        {/* Row 1: Search + Sort */}
+                        <div className="flex gap-2 w-full">
+                            <div className="relative flex-grow group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted transition-colors group-focus-within:text-indigo-500" />
+                                <input 
+                                    type="text"
+                                    placeholder="Search tasks..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all backdrop-blur-md text-main placeholder:text-muted"
+                                />
+                            </div>
+                            <div className="relative flex-shrink-0">
+                                <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="pl-11 pr-8 py-3 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none transition-all backdrop-blur-md font-bold text-main text-sm"
+                                >
+                                    <option value="Newest">Newest</option>
+                                    <option value="DueSoon">Due Soon</option>
+                                    <option value="Priority">Priority</option>
+                                    <option value="Title">Title</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div className="relative">
-                            <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className="pl-11 pr-8 py-3 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none transition-all backdrop-blur-md font-bold text-main text-sm"
-                            >
-                                <option value="Newest">Newest</option>
-                                <option value="DueSoon">Due Soon</option>
-                                <option value="Priority">Priority</option>
-                                <option value="Title">Title</option>
-                            </select>
-                        </div>
-
-                        <div className="flex gap-2">
+                        {/* Row 2: Action Buttons */}
+                        <div className="flex items-center gap-2 flex-wrap">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setShowSettings(true)}
-                                className="px-4 py-3 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 rounded-2xl flex items-center justify-center gap-2 hover:bg-white dark:hover:bg-white/10 transition-all backdrop-blur-md"
+                                className="p-3 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 rounded-2xl flex items-center justify-center gap-2 hover:bg-white dark:hover:bg-white/10 transition-all backdrop-blur-md"
                                 title="Settings"
                             >
                                 <Settings className="w-5 h-5" />
@@ -299,24 +302,6 @@ const Dashboard = ({ user, onLogout }) => {
                             >
                                 <BarChart2 className="w-5 h-5" />
                             </motion.button>
-                        </div>
-
-                        <div className="h-8 w-[1px] bg-gray-200 dark:bg-white/10 hidden lg:block mx-1"></div>
-
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                setCurrentTask({ title: '', description: '', due_date: '', status: 'Pending', priority: 'Medium', subtasks: [] });
-                                setEditingId(null);
-                                setShowModal(true);
-                            }}
-                            className="btn-primary px-6 py-3 flex items-center gap-2 whitespace-nowrap"
-                        >
-                            <Plus className="w-5 h-5" /> New Task
-                        </motion.button>
-                        
-                        <div className="hidden lg:flex gap-2">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -325,6 +310,19 @@ const Dashboard = ({ user, onLogout }) => {
                                 title="Logout"
                             >
                                 <LogOut className="w-5 h-5 text-rose-500" />
+                            </motion.button>
+
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                    setCurrentTask({ title: '', description: '', due_date: '', status: 'Pending', priority: 'Medium', subtasks: [] });
+                                    setEditingId(null);
+                                    setShowModal(true);
+                                }}
+                                className="btn-primary flex-grow sm:flex-grow-0 px-6 py-3 flex items-center justify-center gap-2 whitespace-nowrap"
+                            >
+                                <Plus className="w-5 h-5" /> New Task
                             </motion.button>
                         </div>
                     </div>
@@ -364,12 +362,12 @@ const Dashboard = ({ user, onLogout }) => {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex flex-wrap justify-center gap-2 mb-8 bg-white/30 dark:bg-white/5 p-1.5 rounded-2xl w-fit mx-auto backdrop-blur-md border border-white/50 dark:border-white/10 shadow-sm">
+                <div className="flex flex-nowrap overflow-x-auto scrollbar-hide justify-start sm:justify-center gap-2 mb-8 bg-white/30 dark:bg-white/5 p-1.5 rounded-2xl w-full sm:w-fit mx-auto backdrop-blur-md border border-white/50 dark:border-white/10 shadow-sm">
                     {['Active', 'Pending', 'In Progress', 'Completed', 'All'].map((cat) => (
                         <button
                             key={cat}
                             onClick={() => setFilter(cat)}
-                            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${
+                            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                                 filter === cat 
                                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
                                     : 'text-muted hover:text-indigo-600 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/10'
@@ -425,7 +423,7 @@ const Dashboard = ({ user, onLogout }) => {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
-                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-3xl p-8 w-full max-w-lg shadow-2xl relative`}
+                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-3xl p-6 sm:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl relative`}
                         >
                             <button 
                                 onClick={() => setShowModal(false)}
@@ -566,7 +564,7 @@ const Dashboard = ({ user, onLogout }) => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-[2.5rem] p-8 w-full max-w-xl shadow-2xl relative overflow-hidden`}
+                            className={`${theme === 'dark' ? 'bg-[#0f1115] border border-white/10' : 'bg-white'} rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl relative`}
                         >
                             {/* Decorative Background Element */}
                             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -628,7 +626,7 @@ const Dashboard = ({ user, onLogout }) => {
                                     </div>
 
                                     {/* Reminder Schedule */}
-                                    <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <div className="p-2 bg-orange-500/10 rounded-lg">

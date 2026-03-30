@@ -6,8 +6,8 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const PORT = (process.env.PORT || '5000').toString().trim();
+const JWT_SECRET = (process.env.JWT_SECRET || 'supersecretkey').toString().trim();
 
 app.use(cors());
 app.use(express.json());
@@ -228,14 +228,25 @@ const sendExternalNotification = async (user, title, message) => {
     
     if (user.telegram_id && process.env.TELEGRAM_BOT_TOKEN) {
         try {
-            const botToken = process.env.TELEGRAM_BOT_TOKEN;
+            const botToken = process.env.TELEGRAM_BOT_TOKEN.toString().trim();
+            const chatId = user.telegram_id.toString().trim();
+            
+            console.log(`[Telegram] Sending notification to Chat ID: ${chatId}`);
+            
             await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                chat_id: user.telegram_id,
+                chat_id: chatId,
                 text: `*${title}*\n${message}`,
                 parse_mode: 'Markdown'
             });
+            console.log(`[Telegram] Notification sent successfully to ${chatId}`);
         } catch (err) {
-            console.error('Telegram notification failed:', err.message);
+            console.error('Telegram notification failed for user:', user.name || user.id);
+            if (err.response) {
+                console.error('Telegram API Error Data:', JSON.stringify(err.response.data));
+                console.error('Status Code:', err.response.status);
+            } else {
+                console.error('Error Message:', err.message);
+            }
         }
     }
 };

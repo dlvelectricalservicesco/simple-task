@@ -30,3 +30,4 @@ client/dist/
 *.njsproj
 *.sln
 *.sw?
+.env*.local
